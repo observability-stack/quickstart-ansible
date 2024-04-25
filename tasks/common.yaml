@@ -1,0 +1,56 @@
+- name: install => prerequisites
+  apt:
+    name:
+      - python3-pip
+      - jq
+    state: present
+
+- name: install => pip collections
+  pip:
+    name:
+      - pyyaml
+      - kubernetes 
+
+- name: sysctl => set max_user_watches
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_watches
+    value: '524288'
+    state: present
+
+- name: sysctl => set max_user_instances
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_instances
+    value: '512'
+    state: present
+
+- name: download => kubectl
+  get_url: 
+    url: https://dl.k8s.io/release/v1.26.2/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: "+rx"
+  become: true 
+  become_user: root
+
+- name: install => helm3
+  shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  become: true 
+  become_user: root
+  ignore_errors: true
+
+- name: install => kind-amd64
+  get_url: 
+    url: https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+    dest: /usr/local/bin/kind
+    mode: "+rx"
+  become: true 
+  become_user: root
+  when: ansible_architecture == "x86_64"
+
+- name: install => kind-arm64
+  get_url: 
+    url: https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-arm64
+    dest: /usr/local/bin/kind
+    mode: "+rx"
+  become: true 
+  become_user: root
+  when: ansible_architecture == "arm64"

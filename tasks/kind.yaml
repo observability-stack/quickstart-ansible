@@ -1,0 +1,25 @@
+- name: kind => check existing
+  shell: |
+   kind get clusters
+  register: kind_clusters
+  changed_when: false
+  ignore_errors: true
+  
+- name: kind => create cluster
+  shell: |
+    kind create cluster --config=/root/kind-cluster/{{ item.clusterName }}-config.yaml --kubeconfig=/root/.kube/{{ item.clusterName }}-config
+  when: "item.clusterName not in kind_clusters.stdout"
+
+- name: kubernetes => health-check
+  shell: |
+   /usr/local/bin/kubectl --kubeconfig=/root/.kube/{{ item.clusterName }}-config get nodes
+  register: k8s_health 
+  until: "'The connection' not in k8s_health"
+  retries: 18
+  delay: 10
+  when: "item.clusterName not in kind_clusters.stdout"
+  
+- name: kubernetes => deploy ingress
+  shell: |
+    kubectl --kubeconfig=/root/.kube/{{ item.clusterName }}-config apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  when: "item.clusterName not in kind_clusters.stdout"

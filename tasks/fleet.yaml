@@ -1,0 +1,109 @@
+- name: create => kubeconfig base64
+  shell: cat /root/.kube/{{ item.clusterName }}-config | base64 | tr -d '\n'
+  register: kubeconfig_base64
+  loop: "{{ observers + observees }}"
+
+- name: identify => fleet-controller cluster
+  set_fact:
+    controller_kubeconfig: "/root/.kube/{{ item.clusterName }}-config"
+    controller_context: "kind-{{ item.clusterName }}"
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: get => apiServerURL and apiServerCA from kubeconfig
+  shell: |
+    kubectl config view --kubeconfig /root/.kube/{{ item.clusterName }}-config -o json --raw
+  register: kubeconfig_data
+  changed_when: false
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: parse => apiServerURL
+  set_fact:
+    apiServerURL: "{{ (kubeconfig_data.stdout | from_json).clusters | selectattr('name', 'equalto', 'kind-' ~ item.clusterName) | map(attribute='cluster.server') | first }}"
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: parse => apiServerCA
+  set_fact:
+    apiServerCA: "{{ (kubeconfig_data.stdout | from_json).clusters | selectattr('name', 'equalto', 'kind-' ~ item.clusterName) | map(attribute='cluster.certificate-authority-data') | first | b64decode }}"
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: helm => add fleet helm repository
+  kubernetes.core.helm_repository:
+    name: fleet
+    repo_url: https://rancher.github.io/fleet-helm-charts/
+    state: present
+  when: item.fleet == 'controller'
+
+- name: helm => install fleet-crd
+  kubernetes.core.helm:
+    name: fleet-crd
+    kubeconfig: /root/.kube/{{ item.clusterName }}-config
+    context: kind-{{item.clusterName}}
+    chart_ref: fleet/fleet-crd
+    release_namespace: cattle-fleet-system
+    create_namespace: true
+    wait: true
+    state: present
+  when: item.fleet == 'controller'
+
+- name: helm => install fleet-controller
+  kubernetes.core.helm: 
+   name: fleet
+   kubeconfig: "{{ controller_kubeconfig }}"
+   context: "{{ controller_context }}"
+   chart_ref: fleet/fleet
+   release_namespace: cattle-fleet-system
+   create_namespace: true
+   values: 
+    apiServerURL: "{{ apiServerURL }}"
+    apiServerCA: "{{ apiServerCA }}"
+   wait: true
+   state: present
+  when: item.fleet == 'controller'
+
+- name: create => fleet-default namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    kind: Namespace
+    name: fleet-default
+    state: present
+  when: item.fleet == 'controller'
+
+- name: create => kubeconfig secret for fleet-controller
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{item.item.clusterName}}-kubeconfig"
+        namespace: fleet-default
+      type: Opaque
+      data:
+        value: "{{ item.stdout}}"
+  loop: "{{ kubeconfig_base64.results }}"
+
+- name: fleet => register clusters
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: Cluster
+      metadata:
+        name: "{{item.clusterName}}"
+        namespace: fleet-default
+        labels:
+          observability-enabled: "true"
+          observability-role: "{{item.observabilityRole}}"
+      spec:
+        kubeConfigSecret: "{{item.clusterName}}-kubeconfig"
+        kubeConfigSecretNamespace: fleet-default
+  loop: "{{ observers + observees }}"

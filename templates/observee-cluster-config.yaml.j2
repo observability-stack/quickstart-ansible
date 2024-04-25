@@ -1,0 +1,26 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: {{ item.clusterName }}
+networking:
+  podSubnet: {{ item.podSubnet }}
+  serviceSubnet: {{ item.serviceSubnet }}
+  apiServerAddress: {{ ansible_default_ipv4.address }}
+kubeadmConfigPatches:
+- |
+  networking:
+    dnsDomain: {{ item.dnsDomain }}
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    protocol: TCP
+  - containerPort: 443
+    protocol: TCP
+  - containerPort: 6443
+    protocol: TCP

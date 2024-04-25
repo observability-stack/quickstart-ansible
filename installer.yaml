@@ -1,0 +1,53 @@
+- name: observability-stack => quickstart with kind 
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  vars_files: variables.yaml
+
+  tasks: 
+      - name: install => docker
+        include_tasks: tasks/docker.yaml
+
+      - name: install => common-toolkit
+        include_tasks: tasks/common.yaml
+
+      - name: create =>  the 'kind-cluster' directory
+        file:
+          path: /root/kind-cluster
+          state: directory
+          mode: 0755
+          group: root
+          owner: root
+
+      - name: kind => copy observer config
+        template: 
+          src: observer-cluster-config.yaml.j2
+          dest: /root/kind-cluster/{{ item.clusterName }}-config.yaml
+          owner: root 
+          group: root 
+          force: yes
+        loop: "{{ observers }}"
+
+      - name: kind => copy observee config
+        template: 
+          src: observee-cluster-config.yaml.j2
+          dest: /root/kind-cluster/{{ item.clusterName }}-config.yaml
+          owner: root 
+          group: root 
+          mode: 644 
+          force: yes
+        loop: "{{ observees }}"
+
+      - name: kind => create observer cluster
+        include_tasks: tasks/kind.yaml
+        loop: "{{ observers }}"
+
+      - name: kind => create observee clusters
+        include_tasks: tasks/kind.yaml
+        loop: "{{ observees }}"
+
+      - name: helm => deploy fleet-controller
+        include_tasks: tasks/fleet.yaml
+        loop: "{{ observers+observees }}"
+  
