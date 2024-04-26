@@ -55,6 +55,12 @@ observee02   1/1             1/1           observee02-control-plane   2024-04-25
 observer     1/1             1/1           observer-control-plane     2024-04-25T16:58:54Z
 ```
 
+```
+root@observability-stack:~# kubectl get ClusterGroup -n fleet-default
+NAME                CLUSTERS-READY   BUNDLES-READY   STATUS
+observee-clusters   2/2              2/2
+observer-clusters   1/1              1/1
+```
 
 ## Variables
 

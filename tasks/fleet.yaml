@@ -107,3 +107,37 @@
         kubeConfigSecret: "{{item.clusterName}}-kubeconfig"
         kubeConfigSecretNamespace: fleet-default
   loop: "{{ observers + observees }}"
+
+- name: fleet => form observer cluster group
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: ClusterGroup
+      metadata:
+        name: "observer-clusters"
+        namespace: fleet-default
+      spec:
+        selector:
+          matchLabels:
+            observability-enabled: 'true'
+            observability-role: observer
+
+- name: fleet => form observee cluster group
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: ClusterGroup
+      metadata:
+        name: "observee-clusters"
+        namespace: fleet-default
+      spec:
+        selector:
+          matchLabels:
+            observability-enabled: 'true'
+            observability-role: observee
