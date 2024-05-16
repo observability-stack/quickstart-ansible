@@ -68,16 +68,22 @@ observer-clusters   1/1              1/1
 
 | Parameter          |  Example Value            | Description |
 |--------------------|------------------|-------------|
+| `metrics.enable` | `true`       | Indicates if metrics are enabled for the observability stack. |
 | `clusterName`      | `observer`       | Unique name for each cluster in the stack. |
 | `podSubnet`        |`10.245.0.0/16`    | The IP range for pod networking. Must allocate different subnet for each cluster |
 | `serviceSubnet`    | `10.97.0.0/12`     | The IP range for service networking. Must allocate different subnet for each cluster  |
 | `dnsDomain`        | `observer.local`   | Unique internal DNS domain used by the cluster. |
 | `fleet`            | `controller` | Indicates that this cluster acts as the Fleet controller. Can be `controller` for observer  or `agent` for observees |
 | `observabilityRole`| `observer`     | Role defining the cluster's part in the Observability Stack. Can be `observer` or `observee`. |
+| `ports.name`       | `prometheus-grpc`          | Name of the port/service. |
+| `ports.port`       | `31901`               | Port number used by the service. |
 
 Example configuration:
 
 ```
+observability:
+  metrics:
+    enable: true
 observers:
   - clusterName: "observer"
     podSubnet: "10.244.0.0/16"
@@ -85,6 +91,11 @@ observers:
     dnsDomain: "observer.local"
     fleet: "controller"
     observabilityRole: "observer"
+    ports: 
+      - name: minio-api
+        port: 9000
+      - name: prometheus-grpc
+        port: 31901
 observees:
   - clusterName: "observee01"
     podSubnet: "10.245.0.0/16"
@@ -92,12 +103,18 @@ observees:
     dnsDomain: "observee01.local"
     fleet: "agent"
     observabilityRole: "observee"
+    ports:
+      - name: prometheus-grpc
+        port: 32901
   - clusterName: "observee02"
     podSubnet: "10.246.0.0/16"
     serviceSubnet: "10.98.0.0/12"
     dnsDomain: "observee02.local"
     fleet: "agent"
     observabilityRole: "observee"
+    ports:
+      - name: prometheus-grpc
+        port: 33901
   # Add more observees as needed
 ```
 ## Advanced Configuration
