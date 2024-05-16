@@ -1,0 +1,85 @@
+- name: identify => fleet-controller cluster
+  set_fact:
+    controller_kubeconfig: "/root/.kube/{{ item.clusterName }}-config"
+    controller_context: "kind-{{ item.clusterName }}"
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: observability stack => configure observer gitrepo
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: GitRepo
+      metadata:
+        name: "observer-metrics"
+        namespace: fleet-default
+        labels:
+          component: metrics
+          role: observer
+      spec:
+        repo: https://github.com/observability-stack/quickstart-metrics.git
+        branch: main # main by default
+        paths:
+          - tools/prometheus/kube-prometheus
+          - tools/thanos
+          - tools/grafana/operator
+          - tools/grafana/instance
+        targets:
+          - clusterGroup: observer-clusters
+  when: item.fleet == 'controller'
+
+- name: observability stack => configure observee gitrepo
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: GitRepo
+      metadata:
+        name: "observee-metrics"
+        namespace: fleet-default
+        labels:
+          component: metrics
+          role: observee
+      spec:
+        repo: https://github.com/observability-stack/quickstart-metrics.git
+        branch: main # main by default
+        paths:
+          - tools/prometheus/kube-prometheus
+        targets:
+          - clusterGroup: observee-clusters
+  when: item.fleet == 'controller'
+
+- name: observability stack => copy thanos query targets
+  template: 
+    src: thanos-query-config.yaml.j2
+    dest: /root/kind-cluster/thanos-query-config.yaml
+    owner: root 
+    group: root 
+    force: yes
+  when: item.fleet == 'controller'
+
+- name: observability stack => wait for fleet to create metrics namespace
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    kind: Namespace
+    name: "metrics"
+  register: ns_check
+  until: ns_check.resources | length > 0
+  retries: 20
+  delay: 10
+  ignore_errors: true
+
+- name: observability stack => deploy thanos query targets
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    src: /root/kind-cluster/thanos-query-config.yaml
+  when: item.fleet == 'controller'
+

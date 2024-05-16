@@ -51,3 +51,7 @@
         include_tasks: tasks/fleet.yaml
         loop: "{{ observers+observees }}"
   
+      - name: observability-stack => deploy metrics
+        include_tasks: tasks/metrics.yaml
+        loop: "{{ observers+observees }}"
+        when: observability.metrics.enable == true

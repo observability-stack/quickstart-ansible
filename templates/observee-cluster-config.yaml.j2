@@ -24,3 +24,11 @@ nodes:
     protocol: TCP
   - containerPort: 6443
     protocol: TCP
+  - containerPort: 30901 # prometheus grpc port
+    protocol: TCP
+    listenAddress: {{ ansible_default_ipv4.address }}
+{% for port in item.ports %}
+{% if port.name == "prometheus-grpc" %}
+    hostPort: {{ port.port }}
+{% endif %}
+{% endfor %}

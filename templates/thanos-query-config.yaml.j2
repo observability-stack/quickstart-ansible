@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thanos-query-config
+  namespace: metrics
+data:
+  servicediscovery.yml: |-
+    - targets:
+{% for cluster in observers + observees %}
+{% for port in cluster.ports %}
+{% if port.name == "prometheus-grpc" %}
+      - {{ ansible_host }}:{{ port.port }}
+{% endif %}
+{% endfor %}
+{% endfor %}
