@@ -68,7 +68,7 @@ observer-clusters   1/1              1/1
 
 | Parameter          |  Example Value            | Description |
 |--------------------|------------------|-------------|
-| `metrics.enable` | `true`       | Indicates if metrics are enabled for the observability stack. |
+| `metrics.enable` | `true`       | Indicates if metrics are enabled for the Observability Stack. |
 | `clusterName`      | `observer`       | Unique name for each cluster in the stack. |
 | `podSubnet`        |`10.245.0.0/16`    | The IP range for pod networking. Must allocate different subnet for each cluster |
 | `serviceSubnet`    | `10.97.0.0/12`     | The IP range for service networking. Must allocate different subnet for each cluster  |
