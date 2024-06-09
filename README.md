@@ -20,47 +20,41 @@ Regardless of the inventory file and the number of hosts, the `observer` and `ob
 * Ansible >= 2.9
 * Ansible `kubernetes.core` collection
 
-## Usage
 
-1. Modify the `variables.yaml` file to match your environment specifications and preferences:
+## Quickstart
 
-    * ``observers`` and ``observees``: Define the properties of your kind clusters such as clusterName, podSubnet, serviceSubnet, and dnsDomain.    
+1. Clone this repository 
 
-2. Install `kubernetes.core` collection from ansible-galaxy
-
+```bash
+git clone https://github.com/observability-stack/quickstart-ansible.git
 ```
-ansible-galaxy collection install kubernetes.core 
-```
-3. Run the installer
+
+2. Run the installer (either with inventory file or locally)
 
 ```
 ansible-playbook -i hosts -u <username> installer.yaml 
 ```
-4. Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory
 
-```
-root@observability-stack:~# kind get clusters
-observee01
-observee02
-observer
-```
+3. Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory. 
 
-```
-root@observability-stack:~# export KUBECONFIG=/root/.kube/observer-config
+## Customizing the Installation
 
-root@observability-stack:~# kubectl get clusters -n fleet-default
-NAME         BUNDLES-READY   NODES-READY   SAMPLE-NODE                LAST-SEEN              STATUS
-observee01   1/1             1/1           observee01-control-plane   2024-04-25T16:45:09Z
-observee02   1/1             1/1           observee02-control-plane   2024-04-25T16:45:03Z
-observer     1/1             1/1           observer-control-plane     2024-04-25T16:58:54Z
-```
+You can follow these steps to customize your installation:
 
-```
-root@observability-stack:~# kubectl get ClusterGroup -n fleet-default
-NAME                CLUSTERS-READY   BUNDLES-READY   STATUS
-observee-clusters   2/2              2/2
-observer-clusters   1/1              1/1
-```
+* Modify `variables.yaml`: This file allows you to customize settings for ``` observer``` and ```observee``` cluster configurations such as ```clusterName```, ```podSubnet```, ```serviceSubnet``` etc. You can find detailed descriptions of these variables under the [Variables](#Variables) section.
+
+* Modify Kind Cluster Configuration Templates: Modify the templates directory to customize the Kubernetes clusters set up by kind.You can learn more about these settings in the [Advanced Configuration](#advanced-configuration) section.
+
+Observability Stack Components are deployed using the configurations found in their respective repositories 
+
+* [quickstart-metrics](https://github.com/observability-stack/quickstart-metrics) setup includes:
+  * Thanos: Configured with built-in MinIO object storage backend. Check [```values.yaml```](https://github.com/observability-stack/quickstart-metrics/blob/main/tools/thanos/values.yaml) file for details.
+  * Grafana: 
+    * Grafana Operator: Management and operation of Grafana instance.
+    * Grafana Instance: Simple Grafana installation with default settings. Check [```grafana.yaml```](https://github.com/observability-stack/quickstart-metrics/blob/main/tools/grafana/instance/base/grafana.yaml) file for details.
+    * Datasources: Datasources (e.g., Thanos) that are configured in the Grafana instance. Check [```grafana-datasources.yaml```](https://github.com/observability-stack/quickstart-metrics/blob/main/tools/grafana/instance/base/grafana-datasource.yaml) file for details.
+    * Dashboards: Default dashboards for Observability Stack. Dashboards are stored as json files and imported as ```GrafanaDashboard``` resource. Check [README.md](https://github.com/observability-stack/quickstart-metrics/tree/main/tools/grafana/instance/base/dashboards) file for details and how to add custom dashboards.
+  * kube-prometheus: Simple kube-prometheus stack installation with Thanos storage configured. Check [```values.yaml```](https://github.com/observability-stack/quickstart-metrics/blob/main/tools/prometheus/kube-prometheus/values.yaml) file for details.
 
 ## Variables
 
@@ -162,5 +156,71 @@ nodes:
   - containerPort: 6443
     protocol: TCP
 ```
+## Troubleshooting
+
+### Kind Clusters
+
+```
+root@observability-stack:~# kind get clusters
+observee01
+observee02
+observer
+```
+
+### Observer Cluster
+
+Source the kubeconfig file and check clusters in fleet-default namespace
+```
+root@observability-stack:~# export KUBECONFIG=/root/.kube/observer-config
+root@observability-stack (observer):~# kubectl get clusters -n fleet-default
+NAME         BUNDLES-READY   NODES-READY   SAMPLE-NODE                LAST-SEEN              STATUS
+observee01   1/1             1/1           observee01-control-plane   2024-04-25T16:45:09Z
+observee02   1/1             1/1           observee02-control-plane   2024-04-25T16:45:03Z
+observer     1/1             1/1           observer-control-plane     2024-04-25T16:58:54Z
+```
+Check cluster groups
+```
+root@observability-stack (observer):~# kubectl get ClusterGroup -n fleet-default
+NAME                CLUSTERS-READY   BUNDLES-READY   STATUS
+observee-clusters   2/2              2/2
+observer-clusters   1/1              1/1
+```
+Check GitRepo repositories enrolled to Fleet
+```
+root@observee01:~# kubectl get gitrepo.fleet.cattle.io -n fleet-default
+NAME               REPO                                                            COMMIT                                     BUNDLEDEPLOYMENTS-READY   STATUS
+observee-metrics   https://github.com/observability-stack/quickstart-metrics.git   d080424fd1777b9b57d90e6f847631d936621702   2/2
+observer-metrics   https://github.com/observability-stack/quickstart-metrics.git   d080424fd1777b9b57d90e6f847631d936621702   4/4
+```
+Check Pods under metrics namespace
+```
+root@observability-stack (observer):~# kubectl get pods -n metrics
+NAME                                                       READY   STATUS    RESTARTS   AGE
+alertmanager-prometheus-monitoring-kube-alertmanager-0     2/2     Running   0          4d4h
+prometheus-monitoring-grafana-865668cb4b-mvw9k             3/3     Running   0          4d4h
+prometheus-monitoring-kube-operator-f54bfc5f6-kmp8d        1/1     Running   0          4d4h
+prometheus-monitoring-kube-state-metrics-bddd5c44d-jbjln   1/1     Running   0          4d4h
+prometheus-monitoring-prometheus-node-exporter-g7l5r       1/1     Running   0          4d4h
+prometheus-prometheus-monitoring-kube-prometheus-0         3/3     Running   0          4d4h
+thanos-compactor-b647c5f99-p7jj5                           1/1     Running   0          4d4h
+thanos-minio-74c6cc74df-zq7gj                              1/1     Running   0          4d4h
+thanos-query-6ff46d6c9f-p2nqk                              1/1     Running   0          4d4h
+thanos-query-frontend-d79b55466-v4s4m                      1/1     Running   0          4d4h
+thanos-storegateway-0                                      1/1     Running   0          4d4h
+```
+### Observee Cluster
+```
+root@observability-stack:~# export KUBECONFIG=/root/.kube/observee01-config
+root@observability-stack (observee01):~# kubectl get pods -n metrics
+NAME                                                       READY   STATUS    RESTARTS   AGE
+alertmanager-prometheus-monitoring-kube-alertmanager-0     2/2     Running   0          4d4h
+prometheus-monitoring-grafana-865668cb4b-mktmd             3/3     Running   0          4d4h
+prometheus-monitoring-kube-operator-f54bfc5f6-2hkwn        1/1     Running   0          4d4h
+prometheus-monitoring-kube-state-metrics-bddd5c44d-xltsm   1/1     Running   0          4d4h
+prometheus-monitoring-prometheus-node-exporter-jz4rx       1/1     Running   0          4d4h
+prometheus-prometheus-monitoring-kube-prometheus-0         3/3     Running   0          4d4h
+```
+
+
 ## License
 Licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
