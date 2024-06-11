@@ -1,15 +1,16 @@
 - name: observability-stack => quickstart with kind 
   hosts: all
-  become: true
   become_method: sudo
   vars_files: variables.yaml
 
   tasks: 
       - name: install => docker
         include_tasks: tasks/docker.yaml
+        become: true
 
       - name: install => common-toolkit
         include_tasks: tasks/common.yaml
+        become: true
 
       - name: create =>  the 'kind-cluster' directory
         file:
@@ -41,7 +42,7 @@
       - name: kind => create observer cluster
         include_tasks: tasks/kind.yaml
         loop: "{{ observers }}"
-
+        
       - name: kind => create observee clusters
         include_tasks: tasks/kind.yaml
         loop: "{{ observees }}"
