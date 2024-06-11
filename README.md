@@ -16,10 +16,17 @@ Regardless of the inventory file and the number of hosts, the `observer` and `ob
 
 ## Requirements
 
-* Ubuntu 22.04 as the host operating system
-* Ansible >= 2.9
-* Ansible `kubernetes.core` collection
+### Software
 
+* Ubuntu 22.04 as the host operating system.
+* Ansible >= 2.9
+* Ansible `kubernetes.core` collection.
+
+### Hardware
+
+* **CPU:** Minimum of 4 vCPUs.
+* **Memory:** At least 8 GB of RAM; 16 GB is preferable.
+* **Storage** Minimum of 50 GB of free disk space, though more is always better.
 
 ## Quickstart
 
@@ -29,13 +36,28 @@ Regardless of the inventory file and the number of hosts, the `observer` and `ob
 git clone https://github.com/observability-stack/quickstart-ansible.git
 ```
 
-2. Run the installer (either with inventory file or locally)
+2. Run the installer 
+
+**Remotely (with an inventory file):**
+
+Replace `<username>` with your actual username on the remote hosts:
 
 ```
 ansible-playbook -i hosts -u <username> installer.yaml 
 ```
+**Locally (without an inventory file):**
+```
+ansible-playbook -i "localhost," installer.yaml
+```
 
 3. Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory. 
+
+
+4. Use `kubectl port-forward` to access Grafana interface
+
+```
+kubectl port-forward -n dashboards svc/grafana-service 3000:3000 --address=0.0.0.0
+```
 
 ## Customizing the Installation
 
