@@ -34,3 +34,14 @@
       - docker-buildx-plugin
       - docker-compose-plugin
     state: present
+
+- name: ensure => docker group exists
+  group:
+    name: docker
+    state: present
+
+- name: add => user to docker group
+  user:
+    name: "{{ ansible_user }}" 
+    groups: docker
+    append: yes
