@@ -40,8 +40,16 @@
     name: docker
     state: present
 
-- name: add => user to docker group
-  user:
-    name: "{{ remote_regular_user }}" 
-    groups: docker
-    append: yes
+- name: check => docker without sudo
+  shell: docker run hello-world
+  register: docker_test
+  ignore_errors: true
+  become: false
+
+- name: notify => user to re-login if docker test fails
+  debug:
+    msg: >
+      "IMPORTANT: Please log out and log back - or simply re-run this ansible playbook to 
+      run Docker commands without sudo. Although your user is added to the docker group,
+      it is not possible to run docker commands without sudo, before reinitiating the active user session"
+  when: docker_test is failed
