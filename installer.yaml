@@ -16,7 +16,7 @@
         - name: install => common-toolkit
           include_tasks: tasks/common.yaml
         become: true
-  
+
       - name: create =>  the 'kind-cluster' directory
         file:
           path: "{{ ansible_env.HOME }}/kind-cluster"
