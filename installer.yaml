@@ -44,7 +44,7 @@
           force: yes
         loop: "{{ observees }}"
 
-      - block:
+    - block:
       - name: kind => create observer cluster
         include_tasks: tasks/kind.yaml
         loop: "{{ observers }}"     
