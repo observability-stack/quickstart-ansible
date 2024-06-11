@@ -55,7 +55,7 @@
 - name: notify => user to re-login if docker test fails
   debug:
     msg: >
-      "IMPORTANT: Please log out and log in back - or simply re-run this ansible playbook to 
+      "IMPORTANT: Please log out and log in back - then simply re-run this ansible playbook to 
       run Docker commands without sudo. Although your user is added to the docker group as part of
       this playbook, it is not possible to run docker commands without sudo,
       before reinitiating the active user session"
@@ -63,5 +63,5 @@
 
 - name: exit => playbook after notification
   fail:
-    msg: "Setup failed due to Docker execution permissions. Please re-run the playbook."
+    msg: "Setup failed due to Docker execution permissions. Please log out and log in back then re-run the playbook."
   when: docker_test is failed
