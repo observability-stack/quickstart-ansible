@@ -7,7 +7,7 @@
   
 - name: kind => create cluster
   shell: |
-   sudo kind create cluster --config="{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config" --kubeconfig="{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
+   sudo kind create cluster --config="{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml" --kubeconfig="{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
   when: "item.clusterName not in kind_clusters.stdout"
 
 - name: kubernetes => health-check
