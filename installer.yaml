@@ -4,6 +4,11 @@
   vars_files: variables.yaml
 
   tasks: 
+
+      - name: get => non-root user
+        set_fact:
+          remote_regular_user: "{{ ansible_env.SUDO_USER or ansible_user_id }}"
+
       - block:
         - name: install => docker
           include_tasks: tasks/docker.yaml

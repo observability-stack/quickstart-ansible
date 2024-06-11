@@ -42,6 +42,6 @@
 
 - name: add => user to docker group
   user:
-    name: "{{ ansible_user }}" 
+    name: "{{ remote_regular_user }}" 
     groups: docker
     append: yes
