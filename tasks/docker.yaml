@@ -40,6 +40,12 @@
     name: docker
     state: present
 
+- name: add => user to docker group
+  user:
+    name: "{{ remote_regular_user }}" 
+    groups: docker
+    append: yes
+
 - name: check => docker without sudo
   shell: docker run hello-world
   register: docker_test
