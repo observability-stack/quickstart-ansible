@@ -44,14 +44,14 @@
           force: yes
         loop: "{{ observees }}"
 
-    - block:
-      - name: kind => create observer cluster
-        include_tasks: tasks/kind.yaml
-        loop: "{{ observers }}"     
-      - name: kind => create observee clusters
-        include_tasks: tasks/kind.yaml
-        loop: "{{ observees }}"
-        become: true
+      - block:
+        - name: kind => create observer cluster
+          include_tasks: tasks/kind.yaml
+          loop: "{{ observers }}"     
+        - name: kind => create observee clusters
+          include_tasks: tasks/kind.yaml
+          loop: "{{ observees }}"
+          become: true
   
       - name: helm => deploy fleet-controller
         include_tasks: tasks/fleet.yaml
