@@ -55,5 +55,6 @@
   when: docker_test is failed
 
 - name: exit => playbook after notification
-  meta: end_play
+  fail:
+    msg: "Setup failed due to Docker execution permissions. Please re-run the playbook."
   when: docker_test is failed
