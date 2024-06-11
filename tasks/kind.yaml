@@ -1,13 +1,13 @@
 - name: kind => check existing
   shell: |
-   sudo kind get clusters
+   kind get clusters
   register: kind_clusters
   changed_when: false
   ignore_errors: true
   
 - name: kind => create cluster
   shell: |
-   sudo kind create cluster --config="{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml" --kubeconfig="{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
+   kind create cluster --config="{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml" --kubeconfig="{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
   when: "item.clusterName not in kind_clusters.stdout"
 
 - name: kubernetes => health-check
