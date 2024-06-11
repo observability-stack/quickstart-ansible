@@ -56,8 +56,9 @@
   debug:
     msg: >
       "IMPORTANT: Please log out and log in back - or simply re-run this ansible playbook to 
-      run Docker commands without sudo. Although your user is added to the docker group,
-      it is not possible to run docker commands without sudo, before reinitiating the active user session"
+      run Docker commands without sudo. Although your user is added to the docker group as part of
+      this playbook, it is not possible to run docker commands without sudo, 
+      before reinitiating the active user session"
   when: docker_test is failed
 
 - name: exit => playbook after notification
