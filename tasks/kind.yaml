@@ -26,7 +26,7 @@
 
 - name: create =>  the '.kube' directory for non-root user
   file:
-    path: "{{ rremote_regular_user_home }}/.kube"
+    path: "{{ remote_regular_user_home }}/.kube"
     state: directory
     mode: 0755
     group: "{{ remote_regular_user }}"
@@ -35,7 +35,7 @@
 - name: kind => copy cluster kubeconfigs
   template: 
     src: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
-    dest: "{{ rremote_regular_user_home }}/.kube/{{ item.clusterName }}-config"
+    dest: "{{ remote_regular_user_home }}/.kube/{{ item.clusterName }}-config"
     owner: "{{ ansible_user_id }}" 
     group: "{{ ansible_user_id }}" 
     force: yes
