@@ -8,6 +8,7 @@
       - name: get => non-root user
         set_fact:
           remote_regular_user: "{{ ansible_user_id }}"
+          remote_regular_user_home: "{{ ansible_env.HOME }}"
 
       - block:
         - name: install => docker
@@ -43,14 +44,15 @@
           force: yes
         loop: "{{ observees }}"
 
+      - block:
       - name: kind => create observer cluster
         include_tasks: tasks/kind.yaml
-        loop: "{{ observers }}"
-        
+        loop: "{{ observers }}"     
       - name: kind => create observee clusters
         include_tasks: tasks/kind.yaml
         loop: "{{ observees }}"
-
+        become: true
+  
       - name: helm => deploy fleet-controller
         include_tasks: tasks/fleet.yaml
         loop: "{{ observers+observees }}"
