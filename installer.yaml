@@ -15,36 +15,34 @@
           include_tasks: tasks/docker.yaml
         - name: install => common-toolkit
           include_tasks: tasks/common.yaml
-        become: true
 
-      - name: create =>  the 'kind-cluster' directory
-        file:
-          path: "{{ ansible_env.HOME }}/kind-cluster"
-          state: directory
-          mode: 0755
-          group: "{{ ansible_user_id }}"
-          owner: "{{ ansible_user_id }}"
+        - name: create =>  the 'kind-cluster' directory
+          file:
+            path: "{{ ansible_env.HOME }}/kind-cluster"
+            state: directory
+            mode: 0755
+            group: "{{ ansible_user_id }}"
+            owner: "{{ ansible_user_id }}"
 
-      - name: kind => copy observer config
-        template: 
-          src: observer-cluster-config.yaml.j2
-          dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
-          owner: "{{ ansible_user_id }}" 
-          group: "{{ ansible_user_id }}" 
-          force: yes
-        loop: "{{ observers }}"
+        - name: kind => copy observer config
+          template: 
+            src: observer-cluster-config.yaml.j2
+            dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
+            owner: "{{ ansible_user_id }}" 
+            group: "{{ ansible_user_id }}" 
+            force: yes
+          loop: "{{ observers }}"
 
-      - name: kind => copy observee config
-        template: 
-          src: observee-cluster-config.yaml.j2
-          dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
-          owner: "{{ ansible_user_id }}" 
-          group: "{{ ansible_user_id }}" 
-          mode: 644 
-          force: yes
-        loop: "{{ observees }}"
+        - name: kind => copy observee config
+          template: 
+            src: observee-cluster-config.yaml.j2
+            dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
+            owner: "{{ ansible_user_id }}" 
+            group: "{{ ansible_user_id }}" 
+            mode: 644 
+            force: yes
+          loop: "{{ observees }}"
 
-      - block:
         - name: kind => create observer cluster
           include_tasks: tasks/kind.yaml
           loop: "{{ observers }}"     
