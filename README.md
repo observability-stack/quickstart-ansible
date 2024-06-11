@@ -50,8 +50,38 @@ ansible-playbook -i hosts -u <username> installer.yaml
 ansible-playbook -i "localhost," installer.yaml
 ```
 
-3. Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory. 
+3. (Optional) Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory. 
 
+* Check the Kind Clusters:
+
+```bash
+# List all active Kind clusters 
+kind get clusters
+````
+* Set the KUBECONFIG Environment and verify the Fleet Controller and Observability Stack Components
+
+``` bash
+# Exporting KUBECONFIG files
+export KUBECONFIG=/root/.kube/observer-config
+
+# Fleet Controller status
+kubectl get pods -n cattle-fleet-system
+
+# Git repositories managed by Fleet
+kubectl get gitrepo.fleet.cattle.io -n fleet-default
+
+# We can also check the Fleet Bundles
+kubectl get bundles -n fleet-default
+```
+* Check the Metrics System:
+
+```bash
+# Ensure that the metrics-related pods (thanos, prometheus and alert-manager) are deployed and running properly
+kubectl get pods -n metrics
+
+# Ensure that Grafana is deployed and running properly
+kubectl get pods -n dashboards
+```
 
 4. Use `kubectl port-forward` to access Grafana interface
 

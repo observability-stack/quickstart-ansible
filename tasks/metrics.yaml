@@ -1,6 +1,6 @@
 - name: identify => fleet-controller cluster
   set_fact:
-    controller_kubeconfig: "/root/.kube/{{ item.clusterName }}-config"
+    controller_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
     controller_context: "kind-{{ item.clusterName }}"
   when: item.fleet == 'controller'
   run_once: true  # Ensures this task only runs once and stops when the first controller is found
@@ -57,7 +57,7 @@
 - name: observability stack => copy thanos query targets
   template: 
     src: thanos-query-config.yaml.j2
-    dest: /root/kind-cluster/thanos-query-config.yaml
+    dest: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
     owner: root 
     group: root 
     force: yes
@@ -80,6 +80,6 @@
     kubeconfig: "{{ controller_kubeconfig }}"
     context: "{{ controller_context }}"
     state: present
-    src: /root/kind-cluster/thanos-query-config.yaml
+    src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
   when: item.fleet == 'controller'
 

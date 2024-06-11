@@ -1,18 +1,18 @@
 - name: create => kubeconfig base64
-  shell: cat /root/.kube/{{ item.clusterName }}-config | base64 | tr -d '\n'
+  shell: cat "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config" | base64 | tr -d '\n'
   register: kubeconfig_base64
   loop: "{{ observers + observees }}"
 
 - name: identify => fleet-controller cluster
   set_fact:
-    controller_kubeconfig: "/root/.kube/{{ item.clusterName }}-config"
+    controller_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
     controller_context: "kind-{{ item.clusterName }}"
   when: item.fleet == 'controller'
   run_once: true  # Ensures this task only runs once and stops when the first controller is found
 
 - name: get => apiServerURL and apiServerCA from kubeconfig
   shell: |
-    kubectl config view --kubeconfig /root/.kube/{{ item.clusterName }}-config -o json --raw
+    kubectl config view --kubeconfig "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config" -o json --raw
   register: kubeconfig_data
   changed_when: false
   when: item.fleet == 'controller'
@@ -40,7 +40,7 @@
 - name: helm => install fleet-crd
   kubernetes.core.helm:
     name: fleet-crd
-    kubeconfig: /root/.kube/{{ item.clusterName }}-config
+    kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
     context: kind-{{item.clusterName}}
     chart_ref: fleet/fleet-crd
     release_namespace: cattle-fleet-system

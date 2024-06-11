@@ -1,7 +1,6 @@
 - name: observability-stack => quickstart with kind 
   hosts: all
   become: true
-  become_user: root
   become_method: sudo
   vars_files: variables.yaml
 
@@ -14,27 +13,27 @@
 
       - name: create =>  the 'kind-cluster' directory
         file:
-          path: /root/kind-cluster
+          path: "{{ ansible_env.HOME }}/kind-cluster"
           state: directory
           mode: 0755
-          group: root
-          owner: root
+          group: "{{ ansible_user_id }}"
+          owner: "{{ ansible_user_id }}"
 
       - name: kind => copy observer config
         template: 
           src: observer-cluster-config.yaml.j2
-          dest: /root/kind-cluster/{{ item.clusterName }}-config.yaml
-          owner: root 
-          group: root 
+          dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
+          owner: "{{ ansible_user_id }}" 
+          group: "{{ ansible_user_id }}" 
           force: yes
         loop: "{{ observers }}"
 
       - name: kind => copy observee config
         template: 
           src: observee-cluster-config.yaml.j2
-          dest: /root/kind-cluster/{{ item.clusterName }}-config.yaml
-          owner: root 
-          group: root 
+          dest: "{{ ansible_env.HOME }}/kind-cluster/{{ item.clusterName }}-config.yaml"
+          owner: "{{ ansible_user_id }}" 
+          group: "{{ ansible_user_id }}" 
           mode: 644 
           force: yes
         loop: "{{ observees }}"
