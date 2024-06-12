@@ -58,8 +58,8 @@
   template: 
     src: thanos-query-config.yaml.j2
     dest: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
-    owner: root 
-    group: root 
+    owner: "{{ remote_regular_user }}" 
+    group: "{{ remote_regular_user }}" 
     force: yes
   when: item.fleet == 'controller'
 
