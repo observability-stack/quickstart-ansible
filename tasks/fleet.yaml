@@ -87,6 +87,7 @@
       type: Opaque
       data:
         value: "{{ item.stdout}}"
+  no_log: True
   loop: "{{ kubeconfig_base64.results }}"
 
 - name: fleet => register clusters
