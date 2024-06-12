@@ -24,19 +24,9 @@
     kubectl --kubeconfig="{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config" apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   when: "item.clusterName not in kind_clusters.stdout"
 
-- name: create =>  the '.kube' directory for non-root user
-  file:
-    path: "{{ remote_regular_user_home }}/.kube"
-    state: directory
-    mode: 0755
-    group: "{{ remote_regular_user }}"
-    owner: "{{ remote_regular_user }}"
-
 - name: kind => copy cluster kubeconfigs
-  copy: 
-    src:  "/root/.kube/{{ item.clusterName }}-config"
-    dest: "{{ remote_regular_user_home }}/.kube/{{ item.clusterName }}-config"
-    remote_src: yes
+  file: 
+    path: "{{ remote_regular_user_home }}/.kube/{{ item.clusterName }}-config"
     owner: "{{ remote_regular_user }}" 
     group: "{{ remote_regular_user }}" 
     force: yes
