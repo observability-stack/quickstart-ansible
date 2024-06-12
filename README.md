@@ -30,6 +30,8 @@ Regardless of the inventory file and the number of hosts, the `observer` and `ob
 
 ## Quickstart
 
+[![asciicast](https://asciinema.org/a/Bp66x3KFe1wCY8RDQGrJAdchx.svg)](https://asciinema.org/a/Bp66x3KFe1wCY8RDQGrJAdchx)
+
 1. Clone this repository 
 
 ```bash
@@ -50,7 +52,7 @@ ansible-playbook -i hosts -u <username> installer.yaml
 ansible-playbook -i "localhost," installer.yaml
 ```
 
-3. (Optional) Validate your installation. ``KUBECONFIG`` files for each cluster will be under `/root/.kube/` directory. 
+3. (Optional) Validate your installation. ``KUBECONFIG`` files for each cluster will be under `~/.kube/` directory. 
 
 * Check the Kind Clusters:
 
@@ -62,13 +64,13 @@ kind get clusters
 
 ``` bash
 # Exporting KUBECONFIG files
-export KUBECONFIG=/root/.kube/observer-config
+export KUBECONFIG=~/.kube/observer-config
 
 # Fleet Controller status
 kubectl get pods -n cattle-fleet-system
 
 # Git repositories managed by Fleet
-kubectl get gitrepo.fleet.cattle.io -n fleet-default
+kubectl get gitrepo -n fleet-default
 
 # We can also check the Fleet Bundles
 kubectl get bundles -n fleet-default
@@ -81,8 +83,10 @@ kubectl get pods -n metrics
 
 # Ensure that Grafana is deployed and running properly
 kubectl get pods -n dashboards
-```
 
+# Verify the Grafana service.
+kubectl get svc -n dashboards
+```
 4. Use `kubectl port-forward` to access Grafana interface
 
 ```
