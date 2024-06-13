@@ -23,6 +23,12 @@
     value: '512'
     state: present
 
+- name: sysctl => set max_map_count
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: '262144'
+    state: present
+
 - name: download => kubectl
   get_url: 
     url: https://dl.k8s.io/release/v1.26.2/bin/linux/amd64/kubectl

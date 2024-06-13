@@ -11,6 +11,7 @@ kubeadmConfigPatches:
     dnsDomain: {{ item.dnsDomain }}
 nodes:
 - role: control-plane
+  image: kindest/node:v1.25.16@sha256:5da57dfc290ac3599e775e63b8b6c49c0c85d3fec771cd7d55b45fae14b38d3b
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
