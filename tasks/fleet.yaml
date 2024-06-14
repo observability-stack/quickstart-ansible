@@ -43,7 +43,7 @@
     kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
     context: kind-{{item.clusterName}}
     chart_ref: fleet/fleet-crd
-    chart_version: 0..9.5
+    chart_version: 0.9.5
     release_namespace: cattle-fleet-system
     create_namespace: true
     wait: true
@@ -56,7 +56,7 @@
    kubeconfig: "{{ controller_kubeconfig }}"
    context: "{{ controller_context }}"
    chart_ref: fleet/fleet
-   chart_version: 0..9.5
+   chart_version: 0.9.5
    release_namespace: cattle-fleet-system
    create_namespace: true
    values: 
