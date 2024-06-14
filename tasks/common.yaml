@@ -45,7 +45,7 @@
 
 - name: install => kind-amd64
   get_url: 
-    url: https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+    url: https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
     dest: /usr/local/bin/kind
     mode: "+rx"
   become: true 
@@ -54,7 +54,7 @@
 
 - name: install => kind-arm64
   get_url: 
-    url: https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-arm64
+    url: https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-arm64
     dest: /usr/local/bin/kind
     mode: "+rx"
   become: true 
