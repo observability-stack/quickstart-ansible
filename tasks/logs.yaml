@@ -1,0 +1,69 @@
+- name: identify => fleet-controller cluster
+  set_fact:
+    controller_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
+    controller_context: "kind-{{ item.clusterName }}"
+  when: item.fleet == 'controller'
+  run_once: true  # Ensures this task only runs once and stops when the first controller is found
+
+- name: observability stack => configure observer gitrepo
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: GitRepo
+      metadata:
+        name: "observer-logs"
+        namespace: fleet-default
+        labels:
+          component: logs
+          role: observer
+      spec:
+        repo: https://github.com/observability-stack/quickstart-logs.git
+        branch: main # main by default
+        paths:
+          - tools/logging-operator/operator
+          - tools/logging-operator/logging
+          - tools/opensearch/operator
+          - tools/opensearch/cluster
+        targets:
+          - clusterGroup: observer-clusters
+  when: item.fleet == 'controller'
+
+- name: observability stack => configure observee gitrepo
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    definition:
+      apiVersion: fleet.cattle.io/v1alpha1
+      kind: GitRepo
+      metadata:
+        name: "observee-logs"
+        namespace: fleet-default
+        labels:
+          component: logs
+          role: observee
+      spec:
+        repo: https://github.com/observability-stack/quickstart-logs.git
+        branch: main # main by default
+        paths:
+          - tools/logging-operator/operator
+          - tools/logging-operator/logging
+        targets:
+          - clusterGroup: observee-clusters
+  when: item.fleet == 'controller'
+
+- name: observability stack => wait for fleet to create logging namespace
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    kind: Namespace
+    name: "logging"
+  register: ns_check
+  until: ns_check.resources | length > 0
+  retries: 20
+  delay: 10
+  ignore_errors: true
+
