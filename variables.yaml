@@ -1,6 +1,8 @@
 observability:
   metrics:
     enable: true
+  logs:
+    enable: true
 observers:
   - clusterName: "observer"
     podSubnet: "10.244.0.0/16"
