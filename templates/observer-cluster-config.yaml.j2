@@ -41,3 +41,11 @@ nodes:
     hostPort: {{ port.port }}
 {% endif %}
 {% endfor %}
+  - containerPort: 30920 # opensearch api
+    protocol: TCP
+    listenAddress: {{ ansible_default_ipv4.address }}
+{% for port in item.ports %}
+{% if port.name == "opensearch-api" %}
+    hostPort: {{ port.port }}
+{% endif %}
+{% endfor %}
