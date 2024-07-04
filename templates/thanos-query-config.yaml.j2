@@ -9,7 +9,7 @@ data:
 {% for cluster in observers + observees %}
 {% for port in cluster.ports %}
 {% if port.name == "prometheus-grpc" %}
-      - {{ ansible_default_ipv4 }}:{{ port.port }}
+      - {{ ansible_default_ipv4.address }}:{{ port.port }}
 {% endif %}
 {% endfor %}
 {% endfor %}
