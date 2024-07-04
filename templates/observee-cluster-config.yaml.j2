@@ -21,10 +21,13 @@ nodes:
   extraPortMappings:
   - containerPort: 80
     protocol: TCP
+    listenAddress: {{ ansible_default_ipv4.address }}
   - containerPort: 443
     protocol: TCP
+    listenAddress: {{ ansible_default_ipv4.address }}
   - containerPort: 6443
     protocol: TCP
+    listenAddress: {{ ansible_default_ipv4.address }}
   - containerPort: 30901 # prometheus grpc port
     protocol: TCP
     listenAddress: {{ ansible_default_ipv4.address }}

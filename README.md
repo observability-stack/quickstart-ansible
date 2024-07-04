@@ -20,7 +20,7 @@ Regardless of the inventory file and the number of hosts, the `observer` and `ob
 
 * Ubuntu 22.04 as the host operating system.
 * Ansible >= 2.9
-* Ansible `kubernetes.core` collection.
+* Ansible `kubernetes.core` and `ansible.posix` collection.
 
 ### Hardware
 
