@@ -25,6 +25,7 @@
         paths:
           - tools/logging-operator/operator
           - tools/logging-operator/logging
+          - tools/logging-operator/flows
           - tools/opensearch/operator
           - tools/opensearch/cluster
         targets:
@@ -51,6 +52,7 @@
         paths:
           - tools/logging-operator/operator
           - tools/logging-operator/logging
+          - tools/logging-operator/flows
         targets:
           - clusterGroup: observee-clusters
   when: item.fleet == 'controller'
