@@ -101,18 +101,19 @@
     src: "{{ ansible_env.HOME }}/kind-cluster/clusteroutput.yaml"
   when: item.fleet == 'controller'
 
-- name: observability stack => deploy logging-operator clusteroutput targets to observee clusters
-  block:
-    - name: identify => fleet-aget cluster(s)
-      set_fact:
-        agent_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
-        agent_context: "kind-{{ item.clusterName }}"
-      when: item.fleet == 'agent'
 
-    - name: observability stack => deploy logging-operator clusteroutput targets
-      kubernetes.core.k8s:
-        kubeconfig: "{{ agent_kubeconfig }}"
-        context: "{{ agent_context }}"
-        state: present
-        src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
-      when: item.fleet == 'agent'
+- name: identify => fleet-aget cluster(s)
+  set_fact:
+    agent_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
+    agent_context: "kind-{{ item.clusterName }}"
+  when: item.fleet == 'agent'
+  loop: "{{ observees }}"
+
+- name: observability stack => deploy logging-operator clusteroutput to observee clusters
+  kubernetes.core.k8s:
+    kubeconfig: "{{ agent_kubeconfig }}"
+    context: "{{ agent_context }}"
+    state: present
+    src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
+  when: item.fleet == 'agent'
+  loop: "{{ observees }}"
