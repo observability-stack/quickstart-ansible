@@ -102,7 +102,6 @@
   when: item.fleet == 'controller'
 
 - name: observability stack => deploy logging-operator clusteroutput targets to observee clusters
-  loop: "{{ observees }}"
   block:
     - name: identify => fleet-aget cluster(s)
       set_fact:
@@ -116,4 +115,4 @@
         context: "{{ agent_context }}"
         state: present
         src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
-      when: item.fleet == 'controller'
+      when: item.fleet == 'agent'
