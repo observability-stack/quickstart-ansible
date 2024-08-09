@@ -67,3 +67,53 @@
   delay: 10
   ignore_errors: true
 
+- name: observability stack => wait for logging-operator deployment
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: logging
+    name: logging-operator  # Ensure this matches the actual name
+  register: logging_operator
+  until: 
+    - logging_operator.resources | length > 0
+    - logging_operator.resources[0].status.readyReplicas is defined
+    - logging_operator.resources[0].status.readyReplicas == logging_operator.resources[0].status.replicas
+  retries: 60
+  delay: 10
+  failed_when: logging_operator.resources | length == 0
+---
+- name: observability stack => copy clusteroutput targets
+  template: 
+    src: clusteroutput.yaml.j2
+    dest: "{{ ansible_env.HOME }}/kind-cluster/clusteroutput.yaml"
+    owner: "{{ remote_regular_user }}" 
+    group: "{{ remote_regular_user }}" 
+    force: yes
+  when: item.fleet == 'controller'
+
+- name: observability stack => deploy logging-operator clusteroutput target to observer cluster
+  kubernetes.core.k8s:
+    kubeconfig: "{{ controller_kubeconfig }}"
+    context: "{{ controller_context }}"
+    state: present
+    src: "{{ ansible_env.HOME }}/kind-cluster/clusteroutput.yaml"
+  when: item.fleet == 'controller'
+
+- name: observability stack => deploy logging-operator clusteroutput targets to observee clusters
+  block:
+    - name: identify => fleet-aget cluster(s)
+      set_fact:
+        agent_kubeconfig: "{{ ansible_env.HOME }}/.kube/{{ item.clusterName }}-config"
+        agent_context: "kind-{{ item.clusterName }}"
+      when: item.fleet == 'agent'
+
+    - name: observability stack => deploy logging-operator clusteroutput targets
+      kubernetes.core.k8s:
+        kubeconfig: "{{ agent_kubeconfig }}"
+        context: "{{ agent_context }}"
+        state: present
+        src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
+      when: item.fleet == 'controller'
+  loop: "{{ observees }}"

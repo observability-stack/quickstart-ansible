@@ -1,0 +1,44 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterOutput
+metadata:
+  name: cluster-wide-logging
+spec:
+  opensearch:
+    # connection
+{% for cluster in observers + observees %}
+{% for port in cluster.ports %}
+{% if port.name == "opensearch-api" %}
+    host: {{ ansible_default_ipv4.address }}
+    port: {{ port.port }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+    index_name: logs-generic-%Y-%m-%d
+    scheme: https
+    ssl_verify: false
+    ssl_version: "TLSv1_2"
+    suppress_type_name: true
+    buffer:
+      chunk_limit_size: 16M # 32M
+      flush_at_shutdown: true
+      flush_interval: 60s
+      #flush_thread_interval: 10
+      flush_mode: interval
+      flush_thread_count: 2
+      queued_chunks_limit_size: 2
+      #queue_limit_length: 4
+      retry_forever: false # we are not retrying forever for the cluster generic logs
+      retry_max_times: 10
+      retry_max_interval: 30s
+      total_limit_size: 40GB # 50GB
+      type: file
+      overflow_action: block
+    # security
+    user: admin
+    password:
+      valueFrom:
+        secretKeyRef:
+          name: opensearch-admin-credential
+          key: password
+    # index management
+    include_timestamp: true
