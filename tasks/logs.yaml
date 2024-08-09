@@ -114,6 +114,6 @@
     kubeconfig: "{{ agent_kubeconfig }}"
     context: "{{ agent_context }}"
     state: present
-    src: "{{ ansible_env.HOME }}/kind-cluster/thanos-query-config.yaml"
+    src: "{{ ansible_env.HOME }}/kind-cluster/clusteroutput.yaml"
   when: item.fleet == 'agent'
   loop: "{{ observees }}"
