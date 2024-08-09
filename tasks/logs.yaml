@@ -83,7 +83,7 @@
   retries: 60
   delay: 10
   failed_when: logging_operator.resources | length == 0
----
+
 - name: observability stack => copy clusteroutput targets
   template: 
     src: clusteroutput.yaml.j2
